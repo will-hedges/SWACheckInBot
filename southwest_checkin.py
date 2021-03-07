@@ -85,11 +85,17 @@ class Reservation:
         return
 
     def get_passenger_name(self):
-        self.passenger_name = pyip.inputStr(
-            prompt="\nPassenger name: ",
-            blockRegexes=[r".*"],
-            allowRegexes=[r"^([A-Za-z]+\s[A-Za-z]+)$"],
-        ).title()
+        passenger_name = (
+            pyip.inputStr(
+                prompt="\nPassenger name: ",
+                blockRegexes=[r".*"],
+                allowRegexes=[r"^([A-Za-z]+\s[A-Za-z]+)$"],
+            )
+            .title()
+            .split()
+        )
+        self.firstname = passenger_name[0]
+        self.lastname = passenger_name[1]
         return
 
     def get_reservation(self):
@@ -102,9 +108,9 @@ class Reservation:
         while True:
 
             print(
-                (f'\nChecking in at {self.checkin_time.strftime("%I:%M %p")}'),
-                (f'on {self.checkin_date.strftime("%a, %b %d, %Y")}'),
-                (f"for {self.passenger_name} ({self.confirmation_num})."),
+                (f"\nChecking in at {self.checkin_time.strftime('%I:%M %p')}"),
+                (f"on {self.checkin_date.strftime('%a, %b %d, %Y')}"),
+                (f"for {self.firstname} {self.lastname} ({self.confirmation_num})."),
             )
 
             user_confirm = pyip.inputYesNo(prompt=("Is this correct (Y/N)? "))
@@ -134,13 +140,39 @@ class Reservation:
                 return
 
     def check_in(self):
-        pass
+
+        # TODO wait until the checkin time to check in
+        #   may want to pull the page up ahead of time?
+
+        swa_url = "https://www.southwest.com/air/check-in/index.html"
+        browser = webdriver.Firefox()
+        browser.get(swa_url)
+
+        try:
+            confirmation_num_field = browser.find_element_by_id("confirmationNumber")
+            firstname_field = browser.find_element_by_id("passengerFirstName")
+            lastname_field = browser.find_element_by_id("passengerLastName")
+            check_in_button = browser.find_element_by_id("form-mixin--submit-button")
+
+            confirmation_num_field.send_keys(self.confirmation_num)
+            firstname_field.send_keys(self.firstname)
+            lastname_field.send_keys(self.lastname)
+            check_in_button.click()
+
+        # TODO send message via Twilio if an exception occurs?
+        except Exception as e:
+            print(f"Exception: {e}")
+
+        # TODO click through the radio buttons and through the next page
+
+        return
 
 
 def main():
     reservation = Reservation()
     reservation.get_reservation()
     reservation.confirm_reservation()
+    reservation.check_in()
     return
 
 
