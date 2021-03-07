@@ -9,81 +9,131 @@ import pyinputplus as pyip
 from selenium import webdriver
 
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format=' %(levelname)s - %(message)s'
-    )
-# logging.disable(logging.CRITICAL)
-
-class Reservation():
-
+class Reservation:
     def get_checkin_date(self):
         while True:
-            self.checkin_date = pyip.inputDate(
-                prompt='Check-in date: ',
+            checkin_date = pyip.inputDate(
+                prompt="\nCheck-in date: ",
                 formats=[
-                    '%m/%d', '%m/%d/%y', '%m/%d/%Y',
-                    '%m.%d', '%m.%d.%y', '%m.%d.%Y',
-                    '%m-%d', '%m-%d-%y', '%m.%d.%Y',
-                    '%d-%m', '%d-%m-%y', '%d-%m-%Y',
-
-                    # TODO add more formats, ISO, etc.
-
-                    ]
+                    "%m/%d",
+                    "%m/%d/%y",
+                    "%m/%d/%Y",
+                    "%m.%d",
+                    "%m.%d.%y",
+                    "%m.%d.%Y",
+                    "%m-%d",
+                    "%m-%d-%y",
+                    "%m.%d.%Y",
+                    "%d-%m",
+                    "%d-%m-%y",
+                    "%d-%m-%Y",
+                    # TODO add more formats, esp. international
+                    #   will need to check if they are parsed correctly
+                    #       for example, internat'l 3/1 vs. NA 3/1
+                ],
+            )
+            # if no year is input, set the year to the current year
+            #   since inputDate will default to 1900
+            if checkin_date < date.today():
+                checkin_date = date(
+                    date.today().year, checkin_date.month, checkin_date.day
                 )
 
-            # TODO default to current year if none provided
+            logging.debug(f"checkin_date == {checkin_date}")
 
-            if self.checkin_date < date.today():
-                print('Check-in date cannot be in the past.')
+            if checkin_date < date.today():
+                print("Check-in date cannot be in the past.")
             else:
+                self.checkin_date = checkin_date
                 return
 
-
     def get_checkin_time(self):
-        checkin_time = pyip.inputTime(
-            prompt='Check-in time: ',
-            formats=[
-                '%H%M', '%H:%M',
-                '%I:%M', '%I:%M%p', '%I:%M %p'
-                ]
+
+        while True:
+            checkin_time = pyip.inputTime(
+                prompt="\nCheck-in time: ", formats=["%H%M", "%H:%M"]
             )
 
-        # TODO validate input for AM/PM (period)
-        # TODO validate that checkin datetime is not in the past
+            # FIXME I'm fairly certain I had a better way of doing this before
+            if checkin_time.hour <= 12:
+                period = pyip.inputChoice(["AM", "PM"])
+                if period == "PM":
+                    checkin_time = time(checkin_time.hour + 12, checkin_time.minute)
 
-        self.checkin_time = checkin_time
-        return
+            logging.debug(f"checkin_time == {checkin_time}")
 
+            checkin_datetime = datetime(
+                self.checkin_date.year,
+                self.checkin_date.month,
+                self.checkin_date.day,
+                checkin_time.hour,
+                checkin_time.minute,
+            )
+
+            if checkin_datetime < datetime.now():
+                print("Check-in time cannot be in the past.")
+            else:
+                self.checkin_time = checkin_time
+                return
 
     def get_confirmation_num(self):
         self.confirmation_num = pyip.inputStr(
-            prompt='Confirmation #: ',
-            blockRegexes=[r'.*'],
-            allowRegexes=[r'^(\w{6})$']
-            )
+            prompt="\nConfirmation #: ",
+            blockRegexes=[r".*"],
+            allowRegexes=[r"^(\w{6})$"],
+        )
         return
 
-
-    def get_ticket_name(self):
-        name = pyip.inputStr(
-            prompt='Reservation name: ',
-            blockRegexes=[r'.*'],
-            allowRegexes=[r'^[A-Za-z]+\s[A-Za-z]$']
-            ).split()
-        self.firstname = name[0]
-        self.lastname = name[1]
+    def get_passenger_name(self):
+        self.passenger_name = pyip.inputStr(
+            prompt="\nPassenger name: ",
+            blockRegexes=[r".*"],
+            allowRegexes=[r"^([A-Za-z]+\s[A-Za-z]+)$"],
+        ).title()
         return
-
 
     def get_reservation(self):
         self.get_checkin_date()
         self.get_checkin_time()
         self.get_confirmation_num()
-        self.get_ticket_name()
-
+        self.get_passenger_name()
 
     def confirm_reservation(self):
+        while True:
+
+            print(
+                (f'\nChecking in at {self.checkin_time.strftime("%I:%M %p")}'),
+                (f'on {self.checkin_date.strftime("%a, %b %d, %Y")}'),
+                (f"for {self.passenger_name} ({self.confirmation_num})."),
+            )
+
+            user_confirm = pyip.inputYesNo(prompt=("Is this correct (Y/N)? "))
+
+            if user_confirm == "no":
+                print("\nWhat would you like to fix?")
+
+                details = [
+                    "Check-in date",
+                    "Check-in time",
+                    "Confirmation #",
+                    "Passenger name",
+                ]
+
+                detail = pyip.inputMenu(details, numbered=True)
+
+                if detail == "Check-in date":
+                    self.get_checkin_date()
+                elif detail == "Check-in time":
+                    self.get_checkin_time()
+                elif detail == "Confirmation #":
+                    self.get_confirmation_num()
+                elif detail == "Passenger name":
+                    self.get_passenger_name()
+
+            else:
+                return
+
+    def check_in(self):
         pass
 
 
@@ -92,6 +142,10 @@ def main():
     reservation.get_reservation()
     reservation.confirm_reservation()
     return
+
+
+logging.basicConfig(level=logging.DEBUG, format=" %(levelname)s - %(message)s")
+# logging.disable(logging.CRITICAL)
 
 
 main()
