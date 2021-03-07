@@ -4,6 +4,7 @@
 
 from datetime import date, datetime, time
 import logging
+from time import sleep
 
 import pyinputplus as pyip
 from selenium import webdriver
@@ -73,6 +74,7 @@ class Reservation:
             if checkin_datetime < datetime.now():
                 print("Check-in time cannot be in the past.")
             else:
+                self.checkin_datetime = checkin_datetime
                 self.checkin_time = checkin_time
                 return
 
@@ -103,6 +105,19 @@ class Reservation:
         self.get_checkin_time()
         self.get_confirmation_num()
         self.get_passenger_name()
+        return
+
+    def update_checkin_datetime(self):
+        # updates the check-in datetime if date or time is changed in confirmation
+        self.checkin_datetime = datetime(
+            self.checkin_date.year,
+            self.checkin_date.month,
+            self.checkin_date.day,
+            self.checkin_time.hour,
+            self.checkin_time.minute,
+        )
+        logging.debug(f"self.checkin_datetime == {self.checkin_datetime}")
+        return
 
     def confirm_reservation(self):
         while True:
@@ -114,23 +129,25 @@ class Reservation:
             )
 
             user_confirm = pyip.inputYesNo(prompt=("Is this correct (Y/N)? "))
-
             if user_confirm == "no":
                 print("\nWhat would you like to fix?")
 
-                details = [
-                    "Check-in date",
-                    "Check-in time",
-                    "Confirmation #",
-                    "Passenger name",
-                ]
-
-                detail = pyip.inputMenu(details, numbered=True)
+                detail = pyip.inputMenu(
+                    [
+                        "Check-in date",
+                        "Check-in time",
+                        "Confirmation #",
+                        "Passenger name",
+                    ],
+                    numbered=True,
+                )
 
                 if detail == "Check-in date":
                     self.get_checkin_date()
+                    self.update_checkin_datetime()
                 elif detail == "Check-in time":
                     self.get_checkin_time()
+                    self.update_checkin_datetime()
                 elif detail == "Confirmation #":
                     self.get_confirmation_num()
                 elif detail == "Passenger name":
@@ -141,8 +158,9 @@ class Reservation:
 
     def check_in(self):
 
-        # TODO wait until the checkin time to check in
-        #   may want to pull the page up ahead of time?
+        print("\nChecking in... do not close this window!")
+        while datetime.now() < self.checkin_datetime:
+            sleep(1)
 
         swa_url = "https://www.southwest.com/air/check-in/index.html"
         browser = webdriver.Firefox()
@@ -173,6 +191,7 @@ def main():
     reservation.get_reservation()
     reservation.confirm_reservation()
     reservation.check_in()
+    input("\nPress ENTER or close this window to quit...")
     return
 
 
