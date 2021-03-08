@@ -158,32 +158,44 @@ class Reservation:
 
     def check_in(self):
 
-        print("\nChecking in... do not close this window!")
-        while datetime.now() < self.checkin_datetime:
-            sleep(1)
+        print("\nChecking in... do not close this window!") # FIXME
+        # while datetime.now() < self.checkin_datetime:
+        #    sleep(1)
 
         swa_url = "https://www.southwest.com/air/check-in/index.html"
         browser = webdriver.Firefox()
         browser.get(swa_url)
 
-        try:
-            confirmation_num_field = browser.find_element_by_id("confirmationNumber")
-            firstname_field = browser.find_element_by_id("passengerFirstName")
-            lastname_field = browser.find_element_by_id("passengerLastName")
-            check_in_button = browser.find_element_by_id("form-mixin--submit-button")
+        confirmation_num_field = browser.find_element_by_id("confirmationNumber")
+        firstname_field = browser.find_element_by_id("passengerFirstName")
+        lastname_field = browser.find_element_by_id("passengerLastName")
+        check_in_button = browser.find_element_by_id("form-mixin--submit-button")
 
-            confirmation_num_field.send_keys(self.confirmation_num)
-            firstname_field.send_keys(self.firstname)
-            lastname_field.send_keys(self.lastname)
-            check_in_button.click()
+        confirmation_num_field.send_keys(self.confirmation_num)
+        firstname_field.send_keys(self.firstname)
+        lastname_field.send_keys(self.lastname)
+        check_in_button.click()
 
+        # RAISES selenium.common.exceptions.NoSuchElementException: Message: Unable to locate element: ... etc.
+        second_button = browser.find_element_by_class_name("actionable actionable_button actionable_large-button actionable_no-outline actionable_primary button submit-button air-check-in-review-results--check-in-button")
+        second_button.click()
+
+        # RAISES selenium.common.exceptions.ElementNotInteractableException: Message: Element <span class="submit-button--text"> could not be scrolled into view
+        second_button = browser.find_element_by_class_name("submit-button--text")
+        second_button.click()
+
+        # TODO make this a try/except block
         # TODO send message via Twilio if an exception occurs?
-        except Exception as e:
-            print(f"Exception: {e}")
-
-        # TODO click through the radio buttons and through the next page
 
         return
+
+
+def test():
+    reservation = Reservation()
+    reservation.confirmation_num = "4PSZGI"
+    reservation.firstname = "William"
+    reservation.lastname = "Hedges"
+    reservation.check_in()
 
 
 def main():
@@ -199,4 +211,5 @@ logging.basicConfig(level=logging.DEBUG, format=" %(levelname)s - %(message)s")
 # logging.disable(logging.CRITICAL)
 
 
-main()
+test()
+# main()
