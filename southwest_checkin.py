@@ -7,7 +7,11 @@ import logging
 from time import sleep
 
 import pyinputplus as pyip
+
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class Reservation:
@@ -158,7 +162,7 @@ class Reservation:
 
     def check_in(self):
 
-        print("\nChecking in... do not close this window!") # FIXME
+        print("\nChecking in... do not close this window!")  # FIXME
         # while datetime.now() < self.checkin_datetime:
         #    sleep(1)
 
@@ -176,13 +180,15 @@ class Reservation:
         lastname_field.send_keys(self.lastname)
         check_in_button.click()
 
-        # RAISES selenium.common.exceptions.NoSuchElementException: Message: Unable to locate element: ... etc.
-        second_button = browser.find_element_by_class_name("actionable actionable_button actionable_large-button actionable_no-outline actionable_primary button submit-button air-check-in-review-results--check-in-button")
-        second_button.click()
-
-        # RAISES selenium.common.exceptions.ElementNotInteractableException: Message: Element <span class="submit-button--text"> could not be scrolled into view
-        second_button = browser.find_element_by_class_name("submit-button--text")
-        second_button.click()
+        # TODO use something more readable than xpath?
+        WebDriverWait(browser, 20).until(
+            expected_conditions.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    "/html/body/div[2]/div/div/div/div[2]/div[2]/div/div[2]/div/section/div/div/div[3]/button",
+                )
+            )
+        ).click()
 
         # TODO make this a try/except block
         # TODO send message via Twilio if an exception occurs?
