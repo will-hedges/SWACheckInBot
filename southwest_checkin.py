@@ -7,7 +7,6 @@ import logging
 from time import sleep
 
 import pyinputplus as pyip
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
@@ -32,9 +31,9 @@ class Reservation:
                     "%d-%m",
                     "%d-%m-%y",
                     "%d-%m-%Y",
-                    # TODO add more formats, esp. international
+                    # TODO add more formats, or decide on ONE format, international?
                     #   will need to check if they are parsed correctly
-                    #       for example, internat'l 3/1 vs. NA 3/1
+                    #       for example, international 3/1 vs. NA 3/1
                 ],
             )
             # if no year is input, set the year to the current year
@@ -112,7 +111,7 @@ class Reservation:
         return
 
     def update_checkin_datetime(self):
-        # updates the check-in datetime if date or time is changed in confirmation
+        # updates the check-in datetime if date or time is changed by confirm_reservation()
         self.checkin_datetime = datetime(
             self.checkin_date.year,
             self.checkin_date.month,
@@ -163,11 +162,12 @@ class Reservation:
     def check_in(self):
 
         print("\nChecking in... do not close this window!")  # FIXME
-        # while datetime.now() < self.checkin_datetime:
-        #    sleep(1)
+        while datetime.now() < self.checkin_datetime:
+            sleep(1)
+
+        browser = webdriver.Firefox()
 
         swa_url = "https://www.southwest.com/air/check-in/index.html"
-        browser = webdriver.Firefox()
         browser.get(swa_url)
 
         confirmation_num_field = browser.find_element_by_id("confirmationNumber")
@@ -180,7 +180,6 @@ class Reservation:
         lastname_field.send_keys(self.lastname)
         check_in_button.click()
 
-        # TODO use something more readable than xpath?
         WebDriverWait(browser, 20).until(
             expected_conditions.element_to_be_clickable(
                 (
@@ -196,26 +195,12 @@ class Reservation:
         return
 
 
-def test():
-    reservation = Reservation()
-    reservation.confirmation_num = "4PSZGI"
-    reservation.firstname = "William"
-    reservation.lastname = "Hedges"
-    reservation.check_in()
-
-
-def main():
-    reservation = Reservation()
-    reservation.get_reservation()
-    reservation.confirm_reservation()
-    reservation.check_in()
-    input("\nPress ENTER or close this window to quit...")
-    return
-
-
 logging.basicConfig(level=logging.DEBUG, format=" %(levelname)s - %(message)s")
-# logging.disable(logging.CRITICAL)
+logging.disable(logging.CRITICAL)
 
 
-test()
-# main()
+reservation = Reservation()
+reservation.get_reservation()
+reservation.confirm_reservation()
+reservation.check_in()
+input("\nPress ENTER or close this window to quit...")
