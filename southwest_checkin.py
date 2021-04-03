@@ -4,6 +4,7 @@
 
 from datetime import date, datetime, time
 import logging
+import re
 from time import sleep
 
 import pyinputplus as pyip
@@ -20,8 +21,8 @@ class Reservation:
     def get_checkin_date(self):
         while True:
             checkin_date = pyip.inputDate(
-                prompt="\nCheck-in date (MM/DD/YYYY): ",
-                formats=["%m/%d/%Y"]
+                prompt="\nCheck-in date (M/D/Y): ",
+                formats=["%m/%d/%y", "%m/%d/%Y"]
             )
 
             logging.debug(f"checkin_date == {checkin_date}")
@@ -34,34 +35,48 @@ class Reservation:
 
     def get_checkin_time(self):
         while True:
-            checkin_time = pyip.inputTime(
-                prompt="\nCheck-in time: ", formats=["%H%M", "%H:%M"]
-            )
+            while True:
+                input_time = input("\nCheck-in time: ").strip()
+                logging.debug(f"input_time == {input_time}")
+                try:
+                    mo = re.search(r"(\d{,2}):?(\d{2}) ?(AM|PM)?", input_time)
+                    if not mo:
+                        print(f"'{input_time}' is not a valid time.")
+                    elif mo:
+                        hour, minute = int(mo.group(1)), int(mo.group(2))
+                        period = mo.group(3)
+                        if 0 <= hour <= 23 and 0 <= minute <= 59:
+                            break
+                        else:
+                            print(f"'{input_time}' is not a valid time.")
+                except ValueError:
+                    print(f"'{input_time}' is not a valid time.")
 
-            # FIXME I'm fairly certain I had a better way of doing this before
-            #   should skip if you put PM, or if you put 0730, 1930 etc.
-            if checkin_time.hour <= 12:
+            if ":" in input_time and hour <= 12 and not period:
                 period = pyip.inputChoice(["AM", "PM"])
-                if period == "AM" and checkin_time.hour == 12:
-                    checkin_time = time(checkin_time.hour - 12, checkin_time.minute)
-                elif period == "PM" and checkin_time != 12:
-                    checkin_time = time(checkin_time.hour + 12, checkin_time.minute)
 
-            logging.debug(f"checkin_time == {checkin_time}")
+            if period == "AM" and hour == 12:
+                hour -= 12
+            elif period == "PM" and hour != 12:
+                hour += 12
 
+            checkin_time = time(hour, minute)
             checkin_datetime = datetime(
                 self.checkin_date.year,
                 self.checkin_date.month,
                 self.checkin_date.day,
-                checkin_time.hour,
-                checkin_time.minute,
+                hour,
+                minute,
             )
+            logging.debug(f"checkin_time == {checkin_time}")
+            logging.debug(f"checkin_datetime == {checkin_datetime}")
 
             if checkin_datetime < datetime.now():
                 print("Check-in time cannot be in the past.")
+                continue
             else:
-                self.checkin_datetime = checkin_datetime
                 self.checkin_time = checkin_time
+                self.checkin_datetime = checkin_datetime
                 return
 
     def get_confirmation_num(self):
@@ -108,10 +123,14 @@ class Reservation:
 
     def confirm_reservation(self):
         while True:
+            checkin_datetime_as_string = self.checkin_datetime.strftime(
+                "%I:%M %p on %a, %b %d, %Y"
+            )
+
             print(
-                (f"\nChecking in at {self.checkin_time.strftime('%I:%M %p')}"),
-                (f"on {self.checkin_date.strftime('%a, %b %d, %Y')}"),
-                (f"for {self.firstname} {self.lastname} ({self.confirmation_num})."),
+                (f"\nChecking in at {checkin_datetime_as_string}"),
+                (f"for {self.firstname} {self.lastname}"),
+                (f"({self.confirmation_num})."),
             )
 
             user_confirm = pyip.inputYesNo(prompt=("Is this correct (Y/N)? "))
