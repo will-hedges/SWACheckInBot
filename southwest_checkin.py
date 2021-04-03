@@ -14,34 +14,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 class Reservation:
+    def print_header(): # TODO
+        pass
+
     def get_checkin_date(self):
         while True:
             checkin_date = pyip.inputDate(
-                prompt="\nCheck-in date: ",
-                formats=[
-                    "%m/%d",
-                    "%m/%d/%y",
-                    "%m/%d/%Y",
-                    "%m.%d",
-                    "%m.%d.%y",
-                    "%m.%d.%Y",
-                    "%m-%d",
-                    "%m-%d-%y",
-                    "%m.%d.%Y",
-                    "%d-%m",
-                    "%d-%m-%y",
-                    "%d-%m-%Y",
-                    # TODO add more formats, or decide on ONE format, international?
-                    #   will need to check if they are parsed correctly
-                    #       for example, international 3/1 vs. NA 3/1
-                ],
+                prompt="\nCheck-in date (MM/DD/YYYY): ",
+                formats=["%m/%d/%Y"]
             )
-            # if no year is input, set the year to the current year
-            #   since inputDate will default to 1900
-            if checkin_date < date.today():
-                checkin_date = date(
-                    date.today().year, checkin_date.month, checkin_date.day
-                )
 
             logging.debug(f"checkin_date == {checkin_date}")
 
@@ -52,16 +33,18 @@ class Reservation:
                 return
 
     def get_checkin_time(self):
-
         while True:
             checkin_time = pyip.inputTime(
                 prompt="\nCheck-in time: ", formats=["%H%M", "%H:%M"]
             )
 
             # FIXME I'm fairly certain I had a better way of doing this before
+            #   should skip if you put PM, or if you put 0730, 1930 etc.
             if checkin_time.hour <= 12:
                 period = pyip.inputChoice(["AM", "PM"])
-                if period == "PM":
+                if period == "AM" and checkin_time.hour == 12:
+                    checkin_time = time(checkin_time.hour - 12, checkin_time.minute)
+                elif period == "PM" and checkin_time != 12:
                     checkin_time = time(checkin_time.hour + 12, checkin_time.minute)
 
             logging.debug(f"checkin_time == {checkin_time}")
@@ -111,7 +94,8 @@ class Reservation:
         return
 
     def update_checkin_datetime(self):
-        # updates the check-in datetime if date or time is changed by confirm_reservation()
+        # updates self.checkin_datetime if the date or time
+        #   is changed by confirm_reservation()
         self.checkin_datetime = datetime(
             self.checkin_date.year,
             self.checkin_date.month,
@@ -124,7 +108,6 @@ class Reservation:
 
     def confirm_reservation(self):
         while True:
-
             print(
                 (f"\nChecking in at {self.checkin_time.strftime('%I:%M %p')}"),
                 (f"on {self.checkin_date.strftime('%a, %b %d, %Y')}"),
@@ -134,7 +117,6 @@ class Reservation:
             user_confirm = pyip.inputYesNo(prompt=("Is this correct (Y/N)? "))
             if user_confirm == "no":
                 print("\nWhat would you like to fix?")
-
                 detail = pyip.inputMenu(
                     [
                         "Check-in date",
@@ -147,26 +129,24 @@ class Reservation:
 
                 if detail == "Check-in date":
                     self.get_checkin_date()
-                    self.update_checkin_datetime()
                 elif detail == "Check-in time":
                     self.get_checkin_time()
-                    self.update_checkin_datetime()
                 elif detail == "Confirmation #":
                     self.get_confirmation_num()
                 elif detail == "Passenger name":
                     self.get_passenger_name()
 
+                self.update_checkin_datetime()
+
             else:
                 return
 
     def check_in(self):
-
         print("\nChecking in... do not close this window!")  # FIXME
         while datetime.now() < self.checkin_datetime:
             sleep(1)
 
         browser = webdriver.Firefox()
-
         swa_url = "https://www.southwest.com/air/check-in/index.html"
         browser.get(swa_url)
 
@@ -195,12 +175,17 @@ class Reservation:
         return
 
 
+def main():
+    reservation = Reservation()
+    reservation.get_reservation()
+    reservation.confirm_reservation()
+    reservation.check_in()
+    input("\nPress ENTER or close this window to quit...")
+    return
+
+
 logging.basicConfig(level=logging.DEBUG, format=" %(levelname)s - %(message)s")
-logging.disable(logging.CRITICAL)
+# logging.disable(logging.CRITICAL)
 
-
-reservation = Reservation()
-reservation.get_reservation()
-reservation.confirm_reservation()
-reservation.check_in()
-input("\nPress ENTER or close this window to quit...")
+if __name__ == "__main__":
+    main()
