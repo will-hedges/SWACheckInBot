@@ -14,15 +14,20 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-class Reservation:
-    def print_header(): # TODO
-        pass
+def print_header():  # TODO
+    title = "* SOUTHWEST CHECK-IN *"
+    bar = "*" * len(title)
+    print(bar)
+    print(title)
+    print(bar)
+    return
 
+
+class Reservation:
     def get_checkin_date(self):
         while True:
             checkin_date = pyip.inputDate(
-                prompt="\nCheck-in date (M/D/Y): ",
-                formats=["%m/%d/%y", "%m/%d/%Y"]
+                prompt="\nCheck-in date (M/D/Y): ", formats=["%m/%d/%y", "%m/%d/%Y"]
             )
 
             logging.debug(f"checkin_date == {checkin_date}")
@@ -195,6 +200,7 @@ class Reservation:
 
 
 def main():
+    print_header()
     reservation = Reservation()
     reservation.get_reservation()
     reservation.confirm_reservation()
