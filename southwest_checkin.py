@@ -26,16 +26,16 @@ def print_header():  # TODO
 class Reservation:
     def get_checkin_date(self):
         while True:
-            checkin_date = pyip.inputDate(
+            input_date = pyip.inputDate(
                 prompt="\nCheck-in date (M/D/Y): ", formats=["%m/%d/%y", "%m/%d/%Y"]
             )
 
-            logging.debug(f"checkin_date == {checkin_date}")
+            logging.debug(f"input_date == {input_date}")
 
-            if checkin_date < date.today():
+            if input_date < date.today():
                 print("Check-in date cannot be in the past.")
             else:
-                self.checkin_date = checkin_date
+                self.checkin_date = input_date
                 return
 
     def get_checkin_time(self):
@@ -210,7 +210,7 @@ def main():
 
 
 logging.basicConfig(level=logging.DEBUG, format=" %(levelname)s - %(message)s")
-# logging.disable(logging.CRITICAL)
+logging.disable(logging.CRITICAL)
 
 if __name__ == "__main__":
     main()
