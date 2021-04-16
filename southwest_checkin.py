@@ -166,32 +166,39 @@ class Reservation:
                 return
 
     def check_in(self):
-        print("\nChecking in... do not close this window!")  # FIXME
-        while datetime.now() < self.checkin_datetime:
-            sleep(1)
+        try:
+            print("\nChecking in... do not close this window!")  # FIXME add animation here
+            while datetime.now() < self.checkin_datetime:
+                sleep(1)
 
-        browser = webdriver.Firefox()
-        swa_url = "https://www.southwest.com/air/check-in/index.html"
-        browser.get(swa_url)
+            browser = webdriver.Firefox()
+            swa_url = "https://www.southwest.com/air/check-in/index.html"
+            browser.get(swa_url)
 
-        confirmation_num_field = browser.find_element_by_id("confirmationNumber")
-        firstname_field = browser.find_element_by_id("passengerFirstName")
-        lastname_field = browser.find_element_by_id("passengerLastName")
-        check_in_button = browser.find_element_by_id("form-mixin--submit-button")
+            confirmation_num_field = browser.find_element_by_id("confirmationNumber")
+            firstname_field = browser.find_element_by_id("passengerFirstName")
+            lastname_field = browser.find_element_by_id("passengerLastName")
+            check_in_button = browser.find_element_by_id("form-mixin--submit-button")
 
-        confirmation_num_field.send_keys(self.confirmation_num)
-        firstname_field.send_keys(self.firstname)
-        lastname_field.send_keys(self.lastname)
-        check_in_button.click()
+            confirmation_num_field.send_keys(self.confirmation_num)
+            firstname_field.send_keys(self.firstname)
+            lastname_field.send_keys(self.lastname)
+            check_in_button.click()
 
-        WebDriverWait(browser, 20).until(
-            expected_conditions.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    "/html/body/div[2]/div/div/div/div[2]/div[2]/div/div[2]/div/section/div/div/div[3]/button",
+            WebDriverWait(browser, 20).until(
+                expected_conditions.element_to_be_clickable(
+                    (
+                        By.XPATH,
+                        "/html/body/div[2]/div/div/div/div[2]/div[2]/div/div[2]/div/section/div/div/div[3]/button",
+                    )
                 )
-            )
-        ).click()
+            ).click()
+
+            print("Successfully checked in!")
+            # TODO save/text seat info
+
+        except Exception as e:
+            print(f"An exception occurred: {e}")
 
         # TODO make this a try/except block
         # TODO send message via Twilio if an exception occurs?
