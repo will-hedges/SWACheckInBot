@@ -15,7 +15,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 import twilio.rest
 
 
-def print_header():  # TODO
+def print_header():
     title = "* SOUTHWEST CHECK-IN *"
     bar = "*" * len(title)
     print(bar)
