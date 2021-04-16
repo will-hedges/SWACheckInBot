@@ -1,5 +1,5 @@
 #! python3
-# southwest_checkin.py - DESCRIPTION
+# SWACheckInBot.py - checks in for a SWA flight based on user input
 
 
 from datetime import date, datetime, time
