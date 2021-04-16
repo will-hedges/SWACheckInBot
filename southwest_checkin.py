@@ -193,15 +193,12 @@ class Reservation:
                     )
                 )
             ).click()
-
             print("Successfully checked in!")
-            # TODO save/text seat info
 
         except Exception as e:
             print(f"An exception occurred: {e}")
 
-        # TODO make this a try/except block
-        # TODO send message via Twilio if an exception occurs?
+        # TODO send message via Twilio for seat info or if exception occurs?
 
         return
 
