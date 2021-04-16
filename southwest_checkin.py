@@ -3,7 +3,7 @@
 
 
 from datetime import date, datetime, time
-import logging
+import os
 import re
 from time import sleep
 
@@ -12,6 +12,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+import twilio.rest
 
 
 def print_header():  # TODO
@@ -29,9 +30,6 @@ class Reservation:
             input_date = pyip.inputDate(
                 prompt="\nCheck-in date (M/D/Y): ", formats=["%m/%d/%y", "%m/%d/%Y"]
             )
-
-            logging.debug(f"input_date == {input_date}")
-
             if input_date < date.today():
                 print("Check-in date cannot be in the past.")
             else:
@@ -42,7 +40,6 @@ class Reservation:
         while True:
             while True:
                 input_time = input("\nCheck-in time: ").strip()
-                logging.debug(f"input_time == {input_time}")
                 try:
                     mo = re.search(r"(\d{,2}):?(\d{2}) ?(AM|PM)?", input_time)
                     if not mo:
@@ -73,8 +70,6 @@ class Reservation:
                 hour,
                 minute,
             )
-            logging.debug(f"checkin_time == {checkin_time}")
-            logging.debug(f"checkin_datetime == {checkin_datetime}")
 
             if checkin_datetime < datetime.now():
                 print("Check-in time cannot be in the past.")
@@ -123,7 +118,6 @@ class Reservation:
             self.checkin_time.hour,
             self.checkin_time.minute,
         )
-        logging.debug(f"self.checkin_datetime == {self.checkin_datetime}")
         return
 
     def confirm_reservation(self):
@@ -167,7 +161,8 @@ class Reservation:
 
     def check_in(self):
         try:
-            print("\nChecking in... do not close this window!")  # FIXME add animation here
+            print("\nChecking in... do not close this window!")
+            # FIXME add animation here
             while datetime.now() < self.checkin_datetime:
                 sleep(1)
 
@@ -185,7 +180,9 @@ class Reservation:
             lastname_field.send_keys(self.lastname)
             check_in_button.click()
 
-            WebDriverWait(browser, 20).until(
+            # 5s is the shortest wait time that works
+            #   and XPATH is the only CSS selector that works
+            WebDriverWait(browser, 5).until(
                 expected_conditions.element_to_be_clickable(
                     (
                         By.XPATH,
@@ -193,14 +190,61 @@ class Reservation:
                     )
                 )
             ).click()
-            print("Successfully checked in!")
+
+            boarding_pos = browser.find_element_by_class_name(
+                "air-check-in-passenger-list"
+            ).text.split("\n")
+            boarding_pos = {
+                passenger: pos
+                for passenger, pos in zip(boarding_pos[::2], boarding_pos[1::2])
+            }
+            self.boarding_pos = boarding_pos
+
+            print("\nSuccessfully checked in!")
+            print("Boarding positions:")
+            for passenger, pos in boarding_pos.items():
+                print(f" * {pos} - {passenger}")
 
         except Exception as e:
             print(f"An exception occurred: {e}")
-
-        # TODO send message via Twilio for seat info or if exception occurs?
+            self.boarding_pos = None
 
         return
+
+
+def text_boarding_info_or_check_in_link(Reservation):
+    # texts boarding position(s) or the check-in link if the user has
+    #   correctly configured a Twilio account in their environment vars
+    #       otherwise, passes
+    try:
+        TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+        TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+        TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+        MY_PHONE_NUMBER = os.getenv("MY_PHONE_NUMBER")
+        TWILIO_CLIENT = twilio.rest.Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+        if Reservation.boarding_pos:
+            msg = (
+                f"SWACheckInBot: "
+                f"You're checked in for itinerary {Reservation.confirmation_num}! "
+                f"Boarding position(s): {', '.join(pos for pos in Reservation.boarding_pos.values())}"
+            )
+        else:
+            msg = (
+                f"SWACheckInBot: "
+                f"Uh oh! Something went wrong. "
+                f"Check in for {Reservation.confirmation_num} ASAP! "
+                f"https://southwest.com/check-in"
+            )
+
+        sms = TWILIO_CLIENT.messages.create(
+            body=msg, from_=TWILIO_PHONE_NUMBER, to=MY_PHONE_NUMBER
+        )
+
+    except:
+        pass
+
+    return
 
 
 def main():
@@ -209,12 +253,11 @@ def main():
     reservation.get_reservation()
     reservation.confirm_reservation()
     reservation.check_in()
+    text_boarding_info_or_check_in_link(reservation)
     input("\nPress ENTER or close this window to quit...")
     return
 
 
-logging.basicConfig(level=logging.DEBUG, format=" %(levelname)s - %(message)s")
-logging.disable(logging.CRITICAL)
 
 if __name__ == "__main__":
     main()
