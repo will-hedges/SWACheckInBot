@@ -1,4 +1,4 @@
-# SWACheckInBot - check in automatically
+# SWACheckInBot - a Selenium bot for flight check in
 
 Set and forget terminal app to check in at the earliest time for a SWA flight.
 
