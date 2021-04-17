@@ -13,13 +13,13 @@ At the 24-hour mark prior to your flight, you might be:
 
 This bot aims checks you in when you say with all your input information. No more waiting for the clock to change.
 
-### Technologies
+## Technologies
 * Python 3.8.5
 * [Selenium](https://selenium-python.readthedocs.io/)
 * [PyInputPlus](https://pyinputplus.readthedocs.io/en/latest/)
 * [Twilio](https://pypi.org/project/twilio/) (*optional*)
 
-#### Setup
+## Setup
 To run this project:
 * download SWACheckInBot.py and run it from wherever you want
 
@@ -28,11 +28,12 @@ You'll also need to set:
 * TWILIO_ACCOUNT_SID
 * TWILIO_AUTH_TOKEN
 * TWILIO_PHONE_NUMBER
-* MY_PHONE_NUMBER
+* MY_PHONE_NUMBER (the cell number you want to receive the text)
+
 in your environment variables.
 
-**NOTE: be sure to set your PC to *not* sleep/hibernate/etc. while you are running this program, else it will kill the process while it waits.**
+**NOTE: be sure to set your PC to *not* sleep/hibernate/etc. while you are running this program, else it will kill the process while it waits. Screensaver/lock IS fine.**
 
-##### Running example TODO
+## Running example TODO
 
-###### Screenshots TODO
+## Screenshots TODO
