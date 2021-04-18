@@ -163,7 +163,7 @@ class Reservation:
         try:
             browser = webdriver.Firefox()
             print("\nChecking in... do not close this window!")
-            # FIXME add animation here
+            # TODO add animation here
             while datetime.now() < self.checkin_datetime:
                 sleep(1)
 
@@ -238,7 +238,7 @@ def text_boarding_info_or_check_in_link(Reservation):
                 f"https://southwest.com/check-in"
             )
 
-        sms = TWILIO_CLIENT.messages.create(
+        TWILIO_CLIENT.messages.create(
             body=msg, from_=TWILIO_PHONE_NUMBER, to=MY_CELL_NUMBER
         )
 
@@ -257,7 +257,6 @@ def main():
     text_boarding_info_or_check_in_link(reservation)
     input("\nPress ENTER or close this window to quit...")
     return
-
 
 
 if __name__ == "__main__":
