@@ -21,7 +21,8 @@ This bot aims checks you in when you say with all your input information. No mor
 
 ## Setup
 To run this project:
-* download SWACheckInBot.py and run it from wherever you want
+* check that you have the packages in the [requirements.txt](https://github.com/chemicalwill/SWACheckInBot/blob/main/requirements.txt)
+* download [SWACheckInBot.py](https://github.com/chemicalwill/SWACheckInBot/blob/main/SWACheckInBot.py) and run it from wherever you want
 
 In order to use the **optional** Twilio SMS functionality to text yourself alerts, you'll need to set up a free Twilio account. [Automate the Boring Stuff With Python 2e Chapter 18](https://automatetheboringstuff.com/2e/chapter18/) has a good walkthrough on how to do this.
 You'll also need to set:
@@ -34,6 +35,7 @@ in your environment variables.
 
 **NOTE: be sure to set your PC to *NEVER* sleep/hibernate/etc. while you are running this program, else it will kill the process while it waits. Screensaver/lock IS fine.**
 
-## Running example TODO
+## Example Notifications
 
-## Screenshots TODO
+![alt tag](https://i.imgur.com/cXlrKMu.png?1) ![alt tag](
+https://i.imgur.com/4kIoJlb.png?1)
