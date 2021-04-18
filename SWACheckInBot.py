@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SWACheckInBot.py - checks in for a SWA flight based on user input
 
 
