@@ -10,7 +10,7 @@ If you're like me and you like to get an early boarding for an SWA flight, it's 
 * sleeping
 * generally living life
 
-This bot aims checks you in when you say with all your input information. No more waiting for the clock to change.
+This bot aims to check you in when you say with all your input information. No more waiting for the clock to change.
 
 ## Technologies
 * Python 3.8.5
