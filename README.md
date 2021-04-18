@@ -15,9 +15,9 @@ This bot aims checks you in when you say with all your input information. No mor
 ## Technologies
 * Python 3.8.5
 * [Mozilla Firefox](https://www.mozilla.org/en-US/firefox/new/)
+* [geckodriver](https://github.com/mozilla/geckodriver/releases) (in PATH)
 * [PyInputPlus](https://pyinputplus.readthedocs.io/en/latest/)
 * [Selenium](https://selenium-python.readthedocs.io/)
-* [geckodriver](https://github.com/mozilla/geckodriver/releases) (in PATH)
 * [Twilio](https://pypi.org/project/twilio/) (*optional - for SMS notifications*)
 
 ## Setup
