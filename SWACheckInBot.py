@@ -212,40 +212,38 @@ class Reservation:
 
         return
 
+    def text_boarding_info_or_check_in_link(self):
+        # texts boarding position(s) or the check-in link only if the user has
+        #   correctly configured a Twilio account in their environment vars
+        try:
+            TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+            TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+            TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+            MY_CELL_NUMBER = os.getenv("MY_CELL_NUMBER")
+            TWILIO_CLIENT = twilio.rest.Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-def text_boarding_info_or_check_in_link(Reservation):
-    # texts boarding position(s) or the check-in link if the user has
-    #   correctly configured a Twilio account in their environment vars
-    #       otherwise, passes
-    try:
-        TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
-        TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-        TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
-        MY_CELL_NUMBER = os.getenv("MY_CELL_NUMBER")
-        TWILIO_CLIENT = twilio.rest.Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+            if self.boarding_pos:
+                msg = (
+                    f"SWACheckInBot: "
+                    f"You're checked in for itinerary {self.confirmation_num}! "
+                    f"Boarding position(s): {', '.join(pos for pos in self.boarding_pos.values())}"
+                )
+            else:
+                msg = (
+                    f"SWACheckInBot: "
+                    f"Uh oh! Something went wrong. "
+                    f"Check in for {self.confirmation_num} ASAP! "
+                    f"https://southwest.com/check-in"
+                )
 
-        if Reservation.boarding_pos:
-            msg = (
-                f"SWACheckInBot: "
-                f"You're checked in for itinerary {Reservation.confirmation_num}! "
-                f"Boarding position(s): {', '.join(pos for pos in Reservation.boarding_pos.values())}"
+            TWILIO_CLIENT.messages.create(
+                body=msg, from_=TWILIO_PHONE_NUMBER, to=MY_CELL_NUMBER
             )
-        else:
-            msg = (
-                f"SWACheckInBot: "
-                f"Uh oh! Something went wrong. "
-                f"Check in for {Reservation.confirmation_num} ASAP! "
-                f"https://southwest.com/check-in"
-            )
 
-        TWILIO_CLIENT.messages.create(
-            body=msg, from_=TWILIO_PHONE_NUMBER, to=MY_CELL_NUMBER
-        )
+        except:
+            pass
 
-    except:
-        pass
-
-    return
+        return
 
 
 def main():
@@ -254,7 +252,7 @@ def main():
     reservation.get_reservation()
     reservation.confirm_reservation()
     reservation.check_in()
-    text_boarding_info_or_check_in_link(reservation)
+    reservation.text_boarding_info_or_check_in_link()
     input("\nPress ENTER or close this window to quit...")
     return
 
