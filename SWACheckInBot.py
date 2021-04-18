@@ -161,12 +161,12 @@ class Reservation:
 
     def check_in(self):
         try:
+            browser = webdriver.Firefox()
             print("\nChecking in... do not close this window!")
             # FIXME add animation here
             while datetime.now() < self.checkin_datetime:
                 sleep(1)
 
-            browser = webdriver.Firefox()
             swa_url = "https://www.southwest.com/air/check-in/index.html"
             browser.get(swa_url)
 
@@ -207,6 +207,7 @@ class Reservation:
 
         except Exception as e:
             print(f"An exception occurred: {e}")
+            print("Unable to check in.")
             self.boarding_pos = None
 
         return
@@ -220,7 +221,7 @@ def text_boarding_info_or_check_in_link(Reservation):
         TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
         TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
         TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
-        MY_PHONE_NUMBER = os.getenv("MY_PHONE_NUMBER")
+        MY_CELL_NUMBER = os.getenv("MY_CELL_NUMBER")
         TWILIO_CLIENT = twilio.rest.Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
         if Reservation.boarding_pos:
@@ -238,7 +239,7 @@ def text_boarding_info_or_check_in_link(Reservation):
             )
 
         sms = TWILIO_CLIENT.messages.create(
-            body=msg, from_=TWILIO_PHONE_NUMBER, to=MY_PHONE_NUMBER
+            body=msg, from_=TWILIO_PHONE_NUMBER, to=MY_CELL_NUMBER
         )
 
     except:
