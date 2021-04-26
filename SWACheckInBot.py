@@ -48,7 +48,7 @@ def select_browser():
     if "firefox" in webdrivers and "chrome" in webdrivers:
         print(
             ("Multiple web drivers were found in PATH."),
-            ("Which browser would you like to use?")
+            ("Which browser would you like to use?"),
         )
         choice = pyip.inputMenu(["Firefox", "Chrome"], numbered=True)
         return choice.lower()
