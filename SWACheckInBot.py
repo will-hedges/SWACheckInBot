@@ -4,7 +4,9 @@
 
 from datetime import date, datetime, time
 import os
+import pathlib
 import re
+import sys
 from time import sleep
 
 import pyinputplus as pyip
@@ -16,12 +18,42 @@ import twilio.rest
 
 
 def print_header():
-    title = "* SOUTHWEST CHECK-IN *"
+    title = "* SWA CHECK-IN BOT *"
     bar = "*" * len(title)
     print(bar)
     print(title)
     print(bar)
     return
+
+
+def select_browser():
+    # see if geckodriver, chromedriver or both are in PATH
+    #   if both, have the user choose, or if neither, quit
+    path_dirs = os.getenv("PATH").split(os.pathsep)
+    webdrivers = []
+    for path_dir in path_dirs:
+        geckodriver = pathlib.Path(path_dir) / "geckodriver"
+        chromedriver = pathlib.Path(path_dir) / "chromedriver"
+        if geckodriver.is_file():
+            webdrivers.append("firefox")
+        if chromedriver.is_file():
+            webdrivers.append("chrome")
+
+    if not webdrivers:
+        print("Neither geckodriver nor chromedriver were found in PATH")
+        print("Please install a web driver to PATH and try again.")
+        input("Press ENTER to quit...")
+        sys.exit()
+
+    if "firefox" in webdrivers and "chrome" in webdrivers:
+        print(
+            ("Multiple web drivers were found in PATH."),
+            ("Which browser would you like to use?")
+        )
+        choice = pyip.inputMenu(["Firefox", "Chrome"], numbered=True)
+        return choice.lower()
+
+    return webdrivers.pop()
 
 
 class Reservation:
@@ -159,21 +191,28 @@ class Reservation:
             else:
                 return
 
-    def check_in(self):
+    def check_in(self, driver):
+        # setting self.driver as the webdriver keeps Chrome from closing
+        #   at the completion of this function
         try:
-            browser = webdriver.Firefox()
-            print("\nChecking in... do not close this window!")
+            if driver == "firefox":
+                self.driver = webdriver.Firefox()
+            elif driver == "chrome":
+                self.driver = webdriver.Chrome()
+            driver = self.driver
+
+            print("\nChecking in... don't close these windows!")
             # TODO add animation here
             while datetime.now() < self.checkin_datetime:
                 sleep(1)
 
             swa_url = "https://www.southwest.com/air/check-in/index.html"
-            browser.get(swa_url)
+            driver.get(swa_url)
 
-            confirmation_num_field = browser.find_element_by_id("confirmationNumber")
-            firstname_field = browser.find_element_by_id("passengerFirstName")
-            lastname_field = browser.find_element_by_id("passengerLastName")
-            check_in_button = browser.find_element_by_id("form-mixin--submit-button")
+            confirmation_num_field = driver.find_element_by_id("confirmationNumber")
+            firstname_field = driver.find_element_by_id("passengerFirstName")
+            lastname_field = driver.find_element_by_id("passengerLastName")
+            check_in_button = driver.find_element_by_id("form-mixin--submit-button")
 
             confirmation_num_field.send_keys(self.confirmation_num)
             firstname_field.send_keys(self.firstname)
@@ -182,7 +221,7 @@ class Reservation:
 
             # 5s is the shortest wait time that works
             #   and XPATH is the only CSS selector that works
-            WebDriverWait(browser, 5).until(
+            WebDriverWait(driver, 5).until(
                 expected_conditions.element_to_be_clickable(
                     (
                         By.XPATH,
@@ -191,7 +230,7 @@ class Reservation:
                 )
             ).click()
 
-            boarding_pos = browser.find_element_by_class_name(
+            boarding_pos = driver.find_element_by_class_name(
                 "air-check-in-passenger-list"
             ).text.split("\n")
             boarding_pos = {
@@ -248,10 +287,11 @@ class Reservation:
 
 def main():
     print_header()
+    browser = select_browser()
     reservation = Reservation()
     reservation.get_reservation()
     reservation.confirm_reservation()
-    reservation.check_in()
+    reservation.check_in(browser)
     reservation.text_boarding_info_or_check_in_link()
     input("\nPress ENTER or close this window to quit...")
     return
