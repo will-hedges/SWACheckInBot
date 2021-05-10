@@ -15,7 +15,7 @@ If you're like me and you like to get an early boarding for an SWA flight, it's 
 This bot aims to check you in when you say with all your input information. No more waiting for the clock to change.
 
 ## Technologies
-* [Python 3.8.5](https://www.python.org/downloads/release/python-385/)
+* [Python 3](https://www.python.org/downloads/) (fully tested on 3.8)
 * [Mozilla Firefox](https://www.mozilla.org/en-US/firefox/new/) or [Google Chrome](https://www.google.com/chrome/)
 * [geckodriver](https://github.com/mozilla/geckodriver/releases) or [chromedriver](https://chromedriver.chromium.org/downloads) (respectively) in your PATH
 * [PyInputPlus](https://pyinputplus.readthedocs.io/en/latest/)
