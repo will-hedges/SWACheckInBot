@@ -192,22 +192,17 @@ class Reservation:
                 return
 
     def check_in(self, driver):
-        # setting self.driver as the webdriver keeps Chrome from closing
-        #   at the completion of this function
         try:
             if driver == "firefox":
                 self.driver = webdriver.Firefox()
             elif driver == "chrome":
                 self.driver = webdriver.Chrome()
-            driver = self.driver
 
             print("\nChecking in... don't close these windows!")
-            # TODO add animation here
-            while datetime.now() < self.checkin_datetime:
-                sleep(1)
-
-            swa_url = "https://www.southwest.com/air/check-in/index.html"
-            driver.get(swa_url)
+            # setting self.driver keeps Chrome from closing
+            #   at the completion of this function
+            driver = self.driver
+            driver.get("https://www.southwest.com/air/check-in/index.html")
 
             confirmation_num_field = driver.find_element_by_id("confirmationNumber")
             firstname_field = driver.find_element_by_id("passengerFirstName")
@@ -217,6 +212,9 @@ class Reservation:
             confirmation_num_field.send_keys(self.confirmation_num)
             firstname_field.send_keys(self.firstname)
             lastname_field.send_keys(self.lastname)
+
+            while datetime.now() < self.checkin_datetime:
+                sleep(1)
             check_in_button.click()
 
             # 5s is the shortest wait time that works
