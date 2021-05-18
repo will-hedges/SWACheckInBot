@@ -2,7 +2,7 @@
 # SWACheckInBot.py - checks in for a SWA flight based on user input
 
 
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 import os
 import pathlib
 import re
@@ -193,14 +193,17 @@ class Reservation:
 
     def check_in(self, driver):
         try:
+            print("\nChecking in... don't close these windows!")
+            sixty_seconds = timedelta(seconds=60)
+            while datetime.now() < self.checkin_datetime - sixty_seconds:
+                sleep(1)
+
+            # setting self.driver keeps Chrome from closing
+            #   at the completion of this function
             if driver == "firefox":
                 self.driver = webdriver.Firefox()
             elif driver == "chrome":
                 self.driver = webdriver.Chrome()
-
-            print("\nChecking in... don't close these windows!")
-            # setting self.driver keeps Chrome from closing
-            #   at the completion of this function
             driver = self.driver
             driver.get("https://www.southwest.com/air/check-in/index.html")
 
