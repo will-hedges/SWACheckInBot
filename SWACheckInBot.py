@@ -23,7 +23,6 @@ def print_header():
     print(bar)
     print(title)
     print(bar)
-    return
 
 
 def select_browser():
@@ -117,7 +116,6 @@ class Reservation:
             blockRegexes=[r".*"],
             allowRegexes=[r"^(\w{6})$"],
         )
-        return
 
     def get_passenger_name(self):
         passenger_name = (
@@ -131,14 +129,12 @@ class Reservation:
         )
         self.firstname = passenger_name[0]
         self.lastname = passenger_name[1]
-        return
 
     def get_reservation(self):
         self.get_checkin_date()
         self.get_checkin_time()
         self.get_confirmation_num()
         self.get_passenger_name()
-        return
 
     def update_checkin_datetime(self):
         # updates self.checkin_datetime if the date or time
@@ -150,7 +146,6 @@ class Reservation:
             self.checkin_time.hour,
             self.checkin_time.minute,
         )
-        return
 
     def confirm_reservation(self):
         while True:
@@ -250,8 +245,6 @@ class Reservation:
             print("Unable to check in.")
             self.boarding_pos = None
 
-        return
-
     def text_boarding_info_or_check_in_link(self):
         # texts boarding position(s) or the check-in link only if the user has
         #   correctly configured a Twilio account in their environment vars
@@ -283,8 +276,6 @@ class Reservation:
         except:
             pass
 
-        return
-
 
 def main():
     print_header()
@@ -295,7 +286,6 @@ def main():
     reservation.check_in(browser)
     reservation.text_boarding_info_or_check_in_link()
     input("\nPress ENTER or close this window to quit...")
-    return
 
 
 if __name__ == "__main__":
