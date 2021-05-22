@@ -16,43 +16,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 import twilio.rest
 
-
-def print_header():
-    title = "* SWA CHECK-IN BOT *"
-    bar = "*" * len(title)
-    print(bar)
-    print(title)
-    print(bar)
-
-
-def select_browser():
-    # see if geckodriver, chromedriver or both are in PATH
-    #   if both, have the user choose, or if neither, quit
-    path_dirs = os.getenv("PATH").split(os.pathsep)
-    webdrivers = []
-    for path_dir in path_dirs:
-        geckodriver = pathlib.Path(path_dir) / "geckodriver"
-        chromedriver = pathlib.Path(path_dir) / "chromedriver"
-        if geckodriver.is_file():
-            webdrivers.append("firefox")
-        if chromedriver.is_file():
-            webdrivers.append("chrome")
-
-    if not webdrivers:
-        print("Neither geckodriver nor chromedriver were found in PATH")
-        print("Please install a web driver to PATH and try again.")
-        input("Press ENTER to quit...")
-        sys.exit()
-
-    if "firefox" in webdrivers and "chrome" in webdrivers:
-        print(
-            ("Multiple web drivers were found in PATH."),
-            ("Which browser would you like to use?"),
-        )
-        choice = pyip.inputMenu(["Firefox", "Chrome"], numbered=True)
-        return choice.lower()
-
-    return webdrivers.pop()
+import helpy
 
 
 class Reservation:
@@ -130,7 +94,7 @@ class Reservation:
         self.firstname = passenger_name[0]
         self.lastname = passenger_name[1]
 
-    def get_reservation(self):
+    def get_reservation_details(self):
         self.get_checkin_date()
         self.get_checkin_time()
         self.get_confirmation_num()
@@ -180,7 +144,6 @@ class Reservation:
                     self.get_confirmation_num()
                 elif detail == "Passenger name":
                     self.get_passenger_name()
-
                 self.update_checkin_datetime()
 
             else:
@@ -215,8 +178,8 @@ class Reservation:
                 sleep(1)
             check_in_button.click()
 
-            # 5s is the shortest wait time that works
-            #   and XPATH is the only CSS selector that works
+            # 5s is the shortest wait time that works here
+            #   and XPATH is the only CSS selector that works here
             WebDriverWait(driver, 5).until(
                 expected_conditions.element_to_be_clickable(
                     (
@@ -233,55 +196,45 @@ class Reservation:
                 passenger: pos
                 for passenger, pos in zip(boarding_pos[::2], boarding_pos[1::2])
             }
-            self.boarding_pos = boarding_pos
 
             print("\nSuccessfully checked in!")
             print("Boarding positions:")
             for passenger, pos in boarding_pos.items():
                 print(f" * {pos} - {passenger}")
+            self.boarding_pos = boarding_pos
 
         except Exception as e:
+            # FIXME no actual exception is thrown here
             print(f"An exception occurred: {e}")
             print("Unable to check in.")
             self.boarding_pos = None
 
     def text_boarding_info_or_check_in_link(self):
-        # texts boarding position(s) or the check-in link only if the user has
-        #   correctly configured a Twilio account in their environment vars
-        try:
-            TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
-            TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-            TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
-            MY_CELL_NUMBER = os.getenv("MY_CELL_NUMBER")
-            TWILIO_CLIENT = twilio.rest.Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-
-            if self.boarding_pos:
-                msg = (
-                    f"SWACheckInBot: "
-                    f"You're checked in for itinerary {self.confirmation_num}! "
-                    f"Boarding position(s): {', '.join(pos for pos in self.boarding_pos.values())}"
-                )
-            else:
-                msg = (
-                    f"SWACheckInBot: "
-                    f"Uh oh! Something went wrong. "
-                    f"Check in for {self.confirmation_num} ASAP! "
-                    f"https://southwest.com/check-in"
-                )
-
-            TWILIO_CLIENT.messages.create(
-                body=msg, from_=TWILIO_PHONE_NUMBER, to=MY_CELL_NUMBER
+        # will only send if twilio credentials are in env vars
+        #   see docstring in helpy.send_twilio_message()
+        if self.boarding_pos:
+            msg = (
+                f"SWACheckInBot: "
+                f"You're checked in for itinerary {self.confirmation_num}! "
+                f"Boarding position(s): {', '.join(pos for pos in self.boarding_pos.values())}"
+            )
+        else:
+            msg = (
+                f"SWACheckInBot: "
+                f"Uh oh! Something went wrong. "
+                f"Check in for {self.confirmation_num} ASAP! "
+                f"https://southwest.com/check-in"
             )
 
-        except:
-            pass
+        print(msg)
+        helpy.send_twilio_message(msg)
 
 
 def main():
-    print_header()
-    browser = select_browser()
+    helpy.show_header("SWA CHECK-IN BOT")
+    browser = helpy.select_browser()
     reservation = Reservation()
-    reservation.get_reservation()
+    reservation.get_reservation_details()
     reservation.confirm_reservation()
     reservation.check_in(browser)
     reservation.text_boarding_info_or_check_in_link()
