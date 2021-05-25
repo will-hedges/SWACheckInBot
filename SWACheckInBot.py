@@ -16,8 +16,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 import twilio.rest
 
-import helpy
-
+import cwfxns as cw
 
 class Reservation:
     def get_checkin_date(self):
@@ -211,7 +210,7 @@ class Reservation:
 
     def text_boarding_info_or_check_in_link(self):
         # will only send if twilio credentials are in env vars
-        #   see docstring in helpy.send_twilio_message()
+        #   see docstring in cw.send_twilio_message()
         if self.boarding_pos:
             msg = (
                 f"SWACheckInBot: "
@@ -227,12 +226,12 @@ class Reservation:
             )
 
         print(msg)
-        helpy.send_twilio_message(msg)
+        cw.send_twilio_message(msg)
 
 
 def main():
-    helpy.show_header("SWA CHECK-IN BOT")
-    browser = helpy.select_browser()
+    cw.show_header("SWA CHECK-IN BOT")
+    browser = cw.select_browser()
     reservation = Reservation()
     reservation.get_reservation_details()
     reservation.confirm_reservation()

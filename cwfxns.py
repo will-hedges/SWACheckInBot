@@ -1,30 +1,50 @@
 import os
 import pathlib
+import random
 import sys
 
+import praw
 import pyinputplus as pyip
 from twilio.base.exceptions import TwilioRestException
 import twilio.rest
 
 
-def show_header(title_string):
+def get_random_hot_image_post(subreddit):
     """
-    Prints an uppercase header with asterisks.
+    Scrapes the top 10 "hot" posts in a given subreddit and picks one at random
 
         Parameters:
-            title_string (string): the program's name/title
+            subreddit (string): the subreddit to scrape from
 
-        Example:
-            show_header("some title")
-            **************
-            * SOME TITLE *
-            **************
+        Returns:
+            (post.title, post.url)
+            post.title (string): the text title of the randomly selected post
+            post.url (string): the url of the randomly selected post's image
     """
-    title = f"* {title_string.upper()} *"
-    bar = "*" * len(title)
-    print(bar)
-    print(title)
-    print(bar)
+    PRAW_CLIENT_ID = os.getenv("PRAW_CLIENT_ID")
+    PRAW_CLIENT_SECRET = os.getenv("PRAW_CLIENT_SECRET")
+    PRAW_USER_AGENT = os.getenv("PRAW_USER_AGENT")
+
+    REDDIT = praw.Reddit(
+        client_id=PRAW_CLIENT_ID,
+        client_secret=PRAW_CLIENT_SECRET,
+        user_agent=PRAW_USER_AGENT,
+    )
+
+    while True:
+        post = random.choice(
+            [post for post in REDDIT.subreddit(subreddit).hot(limit=10)]
+        )
+        if post.url.endswith((".jpg", ".png", ".gif")):
+            return (post.title, post.url)
+
+
+def enter_to_quit():
+    """
+    Prompts the user to press Enter/Return and exits the terminal
+    """
+    input("\nPress ENTER to quit...")
+    sys.exit()
 
 
 def select_browser():
@@ -62,7 +82,7 @@ def select_browser():
     return webdrivers.pop()
 
 
-def send_twilio_message(message=None, media_url=None, recipient=None):
+def send_twilio_message(message=None, media_url=None, recipient_phone_number=None):
     """
     Sends an SMS/MMS via twilio. Won't send unless either 'message' or 'media_url' is provided.
     See https://automatetheboringstuff.com/2e/chapter18/ for information on how to set up a free twilio account.
@@ -71,14 +91,14 @@ def send_twilio_message(message=None, media_url=None, recipient=None):
         Parameters:
             message (string): the text message body (defaults to None)
             media_url (string): the optional media/MMS url (defaults to None)
-            recipient (string): recipient phone number, including country and area codes (ex. '+11238675309', defaults to None)
+            recipient_phone_number (string): recipient phone number, including country and area codes (ex. '+11238675309', defaults to None)
 
         These environment variables must be set:
             TWILIO_ACCOUNT_SID (string): twilio account SID
             TWILIO_AUTH_TOKEN (string): twilio auth token
             TWILIO_PHONE_NUMBER (string): twilio phone number, including country and area codes (ex. '+11238675309')
             MY_CELL_NUMBER (string): your cell number, including country and area codes (ex. '+11238675309')
-                - if MY_CELL_NUMBER is set and no recipient is specified, will default to MY_CELL_NUMBER
+                - if MY_CELL_NUMBER is set and no recipient is specified, param recipient_phone_number will default to MY_CELL_NUMBER
     """
 
     if message or media_url:
@@ -101,3 +121,23 @@ def send_twilio_message(message=None, media_url=None, recipient=None):
 
         except TwilioRestException:
             pass
+
+
+def show_header(title_string):
+    """
+    Prints an uppercase header with asterisks.
+
+        Parameters:
+            title_string (string): the program's name/title
+
+        Example:
+            show_header("some title")
+            **************
+            * SOME TITLE *
+            **************
+    """
+    title = f"* {title_string.upper()} *"
+    bar = "*" * len(title)
+    print(bar)
+    print(title)
+    print(bar)
