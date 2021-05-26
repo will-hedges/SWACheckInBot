@@ -7,3 +7,4 @@ geckodriver.log
 *.png
 Southwest Airlines - Check in Confirmation_files/mpel
 Southwest Airlines - Check in Review Details_files/mpel
+*.pyc
